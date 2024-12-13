@@ -3,7 +3,7 @@
 ![OSX](https://github.com/gwaldron/osgearth/actions/workflows/macos.yml/badge.svg)
 
 
-## Welcome to osgEarth!
+## Welcome to osgEarth!!
 
 osgEarth adds geospatially accurate 3D maps to your C++ application.
 
