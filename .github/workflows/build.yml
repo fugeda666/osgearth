@@ -1,41 +1,49 @@
-name: Build osgearth
+name: Build osgearth on Windows
 
 on:
   push:
     branches:
-      - main  # 你可以选择其他分支
+      - main  # 可以设置为其他分支，如开发分支
   pull_request:
     branches:
-      - main  # 在 PR 到 main 时触发构建
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 使用 Ubuntu 最新版本作为构建环境
+    runs-on: windows-latest  # 使用 Windows 环境构建
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2  # 获取代码
 
-    - name: Set up dependencies
+    - name: Set up Visual Studio
+      uses: microsoft/setup-msbuild@v1  # 设置 Visual Studio 编译环境
+      with:
+        vs-version: 'latest'  # 使用最新版本的 Visual Studio
+
+    - name: Install dependencies
       run: |
-        sudo apt update
-        sudo apt install -y cmake g++ libproj-dev libsqlite3-dev libcurl4-openssl-dev libboost-all-dev
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'  # 安装 CMake
+        choco install git  # 安装 Git
+        choco install boost  # 安装 Boost 库
+        choco install sqlite  # 安装 SQLite 库
+        choco install proj  # 安装 PROJ 库
+        choco install curl  # 安装 cURL 库
 
     - name: Build osgearth
       run: |
         mkdir build
         cd build
-        cmake ..
-        make -j$(nproc)  # 使用多核编译
+        cmake -G "Visual Studio 16 2019" ..
+        msbuild osgearth.sln /p:Configuration=Release  # 使用 MSBuild 编译
 
     - name: Create release package
       run: |
         cd build
-        tar -czf osgearth_build.tar.gz *  # 将编译结果打包为 tar.gz 文件
+        Compress-Archive -Path * -DestinationPath osgearth_build.zip  # 将构建结果打包成 ZIP 文件
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: osgearth-build
-        path: build/osgearth_build.tar.gz  # 上传 tar.gz 文件作为构建工件
-
+        path: build/osgearth_build.zip  # 上传 ZIP 文件作为构建工件
